@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'get_started_page.dart';
+import 'theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,8 +14,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _rotationAnimation;
-  late Animation<double> _cloudAnimation;
+  late Animation<double> _slideAnimation;
 
   @override
   void initState() {
@@ -38,27 +38,27 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
-    _rotationAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    _slideAnimation = Tween<double>(begin: 50, end: 0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.0, 1.0, curve: Curves.easeInOut),
-      ),
-    );
-
-    _cloudAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 1.0, curve: Curves.easeInOut),
+        curve: const Interval(0.2, 0.8, curve: Curves.easeOut),
       ),
     );
 
     _controller.forward();
 
-    // Navigate to GetStartedPage after animation
     Future.delayed(const Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const GetStartedPage()),
+        PageRouteBuilder(
+          pageBuilder:
+              (context, animation, secondaryAnimation) =>
+                  const GetStartedPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 800),
+        ),
       );
     });
   }
@@ -69,61 +69,30 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
-  Widget _buildCloud(double size, double top, double left, double opacity) {
-    return Positioned(
-      top: top,
-      left: left,
-      child: Opacity(
-        opacity: opacity,
-        child: Container(
-          width: size,
-          height: size * 0.6,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(size),
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background with animated shapes
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Colors.blue.shade400, Colors.blue.shade800],
-              ),
-            ),
-            child: Stack(
-              children: [
-                // Animated circles
-                Positioned(
-                  top: -50,
-                  right: -50,
-                  child: RotationTransition(
-                    turns: _rotationAnimation,
-                    child: Container(
-                      width: 150,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.1),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: -30,
-                  left: -30,
-                  child: RotationTransition(
-                    turns: _rotationAnimation,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: AppColors.backgroundGradient,
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Background decorative elements
+            Positioned(
+              top: size.height * 0.1,
+              right: 20,
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _scaleAnimation.value * 0.8,
                     child: Container(
                       width: 100,
                       height: 100,
@@ -132,100 +101,108 @@ class _SplashScreenState extends State<SplashScreen>
                         color: Colors.white.withOpacity(0.1),
                       ),
                     ),
-                  ),
-                ),
-                // Animated clouds
-                AnimatedBuilder(
-                  animation: _cloudAnimation,
-                  builder: (context, child) {
-                    return Stack(
-                      children: [
-                        _buildCloud(100, 50, 50, 0.3),
-                        _buildCloud(80, 100, 200, 0.2),
-                        _buildCloud(120, 150, 100, 0.25),
-                        _buildCloud(90, 200, 250, 0.2),
-                        _buildCloud(70, 250, 150, 0.15),
-                        _buildCloud(110, 300, 50, 0.2),
-                      ],
-                    );
-                  },
-                ),
-                // Decorative elements
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.3,
-                  right: 20,
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.1),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: MediaQuery.of(context).size.height * 0.2,
-                  left: 20,
-                  child: Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.1),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Main content
-          Center(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Weather icon with gradient
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      child: Image.asset(
-                        'assets/images/weather_3d.png',
-                        height: 150,
-                        width: 150,
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    // App name
-                    const Text(
-                      'Weather App',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    // Loading indicator with custom style
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        strokeWidth: 2,
-                      ),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
-          ),
-        ],
+            Positioned(
+              bottom: size.height * 0.15,
+              left: 20,
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _scaleAnimation.value * 0.6,
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.1),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            // Main content
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Weather icon with animation
+                  AnimatedBuilder(
+                    animation: _controller,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, _slideAnimation.value),
+                        child: Transform.scale(
+                          scale: _scaleAnimation.value,
+                          child: FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: Container(
+                              padding: const EdgeInsets.all(20),
+                              child: Image.asset(
+                                'assets/images/weather_3d.png',
+                                height: size.height * 0.25,
+                                width: size.width * 0.6,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 40),
+                  // App name with animation
+                  AnimatedBuilder(
+                    animation: _controller,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, _slideAnimation.value),
+                        child: FadeTransition(
+                          opacity: _fadeAnimation,
+                          child: const Text(
+                            'Weather App',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 30),
+                  // Loading indicator
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                          strokeWidth: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

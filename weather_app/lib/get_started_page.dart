@@ -208,27 +208,31 @@ class OnboardingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final availableHeight =
+        size.height - (size.height * 0.4); // Height minus white container
 
     return Column(
       children: [
-        const SizedBox(height: 80),
-        // Image with animation
-        TweenAnimationBuilder<double>(
-          duration: const Duration(milliseconds: 300),
-          tween: Tween(begin: 0.8, end: 1.0),
-          builder: (context, value, child) {
-            return Transform.scale(
-              scale: value,
-              child: Image.asset(
-                content.image,
-                height: size.height * 0.35,
-                width: size.width * 0.8,
-                fit: BoxFit.contain,
-              ),
-            );
-          },
+        SizedBox(
+          height: availableHeight,
+          child: Center(
+            child: TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 300),
+              tween: Tween(begin: 0.8, end: 1.0),
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: value,
+                  child: Image.asset(
+                    content.image,
+                    height: size.height * 0.35,
+                    width: size.width * 0.8,
+                    fit: BoxFit.contain,
+                  ),
+                );
+              },
+            ),
+          ),
         ),
-        const Spacer(),
         // White curved background
         Container(
           height: size.height * 0.4,
@@ -251,9 +255,7 @@ class OnboardingPage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 30),
             child: Column(
               children: [
-                const SizedBox(
-                  height: 50,
-                ), // Reduced from default center spacing
+                const SizedBox(height: 50),
                 Text(
                   content.title,
                   textAlign: TextAlign.center,
@@ -264,9 +266,7 @@ class OnboardingPage extends StatelessWidget {
                     height: 1.2,
                   ),
                 ),
-                const SizedBox(
-                  height: 15,
-                ), // Reduced spacing between title and description
+                const SizedBox(height: 15),
                 Text(
                   content.description,
                   textAlign: TextAlign.center,
