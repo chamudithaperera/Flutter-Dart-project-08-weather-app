@@ -250,8 +250,10 @@ class OnboardingPage extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                const SizedBox(
+                  height: 50,
+                ), // Reduced from default center spacing
                 Text(
                   content.title,
                   textAlign: TextAlign.center,
@@ -262,7 +264,9 @@ class OnboardingPage extends StatelessWidget {
                     height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(
+                  height: 15,
+                ), // Reduced spacing between title and description
                 Text(
                   content.description,
                   textAlign: TextAlign.center,
