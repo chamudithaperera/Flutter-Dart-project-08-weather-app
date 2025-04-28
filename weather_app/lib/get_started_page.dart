@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import 'theme/app_colors.dart';
 
 class GetStartedPage extends StatefulWidget {
@@ -8,9 +9,11 @@ class GetStartedPage extends StatefulWidget {
   State<GetStartedPage> createState() => _GetStartedPageState();
 }
 
-class _GetStartedPageState extends State<GetStartedPage> {
-  final PageController _pageController = PageController();
+class _GetStartedPageState extends State<GetStartedPage>
+    with TickerProviderStateMixin {
+  late PageController _pageController;
   int _currentPage = 0;
+  double _currentPageValue = 0.0;
 
   final List<OnboardingContent> _contents = [
     OnboardingContent(
@@ -36,6 +39,16 @@ class _GetStartedPageState extends State<GetStartedPage> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 0.85)..addListener(() {
+      setState(() {
+        _currentPageValue = _pageController.page!;
+      });
+    });
+  }
+
+  @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
@@ -44,6 +57,7 @@ class _GetStartedPageState extends State<GetStartedPage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final availableHeight = size.height - (size.height * 0.4);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -77,110 +91,200 @@ class _GetStartedPageState extends State<GetStartedPage> {
               ),
             ),
           ),
-          // Page View
-          PageView.builder(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
-            itemCount: _contents.length,
-            itemBuilder: (context, index) {
-              return OnboardingPage(content: _contents[index]);
-            },
-          ),
-          // Page Indicators
-          Positioned(
-            bottom: size.height * 0.42,
-            left: 0,
-            right: 0,
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    _contents.length,
-                    (index) => AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: _currentPage == index ? 24 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(4),
-                        color:
-                            _currentPage == index
-                                ? AppColors.textLight
-                                : AppColors.textLight.withOpacity(0.4),
+          Column(
+            children: [
+              SizedBox(
+                height: availableHeight,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 80),
+                    // 3D Carousel PageView
+                    SizedBox(
+                      height: availableHeight * 0.7,
+                      child: PageView.builder(
+                        controller: _pageController,
+                        onPageChanged: (index) {
+                          setState(() {
+                            _currentPage = index;
+                          });
+                        },
+                        itemCount: _contents.length,
+                        itemBuilder: (context, index) {
+                          double value = (index - _currentPageValue);
+                          value = (1 - (value.abs() * .5)).clamp(0.0, 1.0);
+
+                          return Transform(
+                            transform:
+                                Matrix4.identity()
+                                  ..setEntry(3, 2, 0.001)
+                                  ..rotateY(
+                                    value *
+                                        value *
+                                        (index > _currentPageValue
+                                            ? -0.5
+                                            : 0.5),
+                                  )
+                                  ..translate(
+                                    (1 - value) *
+                                        100 *
+                                        (index > _currentPageValue ? 1 : -1),
+                                  )
+                                  ..scale(0.8 + (value * 0.2)),
+                            child: Opacity(
+                              opacity: value,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                ),
+                                child: Image.asset(
+                                  _contents[index].image,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
-          // Next Button
-          Positioned(
-            bottom: 50,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: GestureDetector(
-                onTap: () {
-                  if (_currentPage == _contents.length - 1) {
-                    // TODO: Navigate to main app
-                  } else {
-                    _pageController.nextPage(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
-                  }
-                },
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primaryDark,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    children: [
-                      // Progress Indicator
-                      Center(
-                        child: SizedBox(
-                          width: 64,
-                          height: 64,
-                          child: CircularProgressIndicator(
-                            value: (_currentPage + 1) / _contents.length,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              AppColors.progress,
-                            ),
-                            backgroundColor: AppColors.progressBackground,
-                            strokeWidth: 2,
+                    const SizedBox(height: 20),
+                    // Page Indicators
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        _contents.length,
+                        (index) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          height: 8,
+                          width: _currentPage == index ? 24 : 8,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                            color:
+                                _currentPage == index
+                                    ? AppColors.textLight
+                                    : AppColors.textLight.withOpacity(0.4),
                           ),
                         ),
                       ),
-                      // Arrow Icon
-                      Center(
-                        child: Icon(
-                          Icons.arrow_forward,
-                          color: AppColors.textLight,
-                          size: 24,
+                    ),
+                  ],
+                ),
+              ),
+              // White bottom container
+              Container(
+                height: size.height * 0.4,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppColors.cardBackground,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 50),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: Text(
+                          _contents[_currentPage].title,
+                          key: ValueKey<String>(_contents[_currentPage].title),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: AppColors.textDark,
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            height: 1.2,
+                          ),
                         ),
                       ),
+                      const SizedBox(height: 15),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: Text(
+                          _contents[_currentPage].description,
+                          key: ValueKey<String>(
+                            _contents[_currentPage].description,
+                          ),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: AppColors.textDark.withOpacity(0.7),
+                            fontSize: 18,
+                            height: 1.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      // Centered Next Button
+                      GestureDetector(
+                        onTap: () {
+                          if (_currentPage == _contents.length - 1) {
+                            // TODO: Navigate to main app
+                          } else {
+                            _pageController.nextPage(
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
+                        child: Container(
+                          width: 70,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.primaryDark,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: SizedBox(
+                                  width: 70,
+                                  height: 70,
+                                  child: CircularProgressIndicator(
+                                    value:
+                                        (_currentPage + 1) / _contents.length,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.progress,
+                                    ),
+                                    backgroundColor:
+                                        AppColors.progressBackground,
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              ),
+                              const Center(
+                                child: Icon(
+                                  Icons.arrow_forward,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
                     ],
                   ),
                 ),
               ),
-            ),
+            ],
           ),
         ],
       ),
@@ -198,89 +302,4 @@ class OnboardingContent {
     required this.description,
     required this.image,
   });
-}
-
-class OnboardingPage extends StatelessWidget {
-  final OnboardingContent content;
-
-  const OnboardingPage({super.key, required this.content});
-
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final availableHeight =
-        size.height - (size.height * 0.4); // Height minus white container
-
-    return Column(
-      children: [
-        SizedBox(
-          height: availableHeight,
-          child: Center(
-            child: TweenAnimationBuilder<double>(
-              duration: const Duration(milliseconds: 300),
-              tween: Tween(begin: 0.8, end: 1.0),
-              builder: (context, value, child) {
-                return Transform.scale(
-                  scale: value,
-                  child: Image.asset(
-                    content.image,
-                    height: size.height * 0.35,
-                    width: size.width * 0.8,
-                    fit: BoxFit.contain,
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        // White curved background
-        Container(
-          height: size.height * 0.4,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(30),
-              topRight: Radius.circular(30),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, -5),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: Column(
-              children: [
-                const SizedBox(height: 50),
-                Text(
-                  content.title,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppColors.textDark,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    height: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 15),
-                Text(
-                  content.description,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppColors.textDark.withOpacity(0.7),
-                    fontSize: 18,
-                    height: 1.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }
