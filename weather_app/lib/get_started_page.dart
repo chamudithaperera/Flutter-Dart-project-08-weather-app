@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 import 'theme/app_colors.dart';
 
 class GetStartedPage extends StatefulWidget {
@@ -116,20 +115,12 @@ class _GetStartedPageState extends State<GetStartedPage>
                           return Transform(
                             transform:
                                 Matrix4.identity()
-                                  ..setEntry(3, 2, 0.001)
-                                  ..rotateY(
-                                    value *
-                                        value *
-                                        (index > _currentPageValue
-                                            ? -0.5
-                                            : 0.5),
-                                  )
                                   ..translate(
                                     (1 - value) *
-                                        100 *
+                                        50 *
                                         (index > _currentPageValue ? 1 : -1),
                                   )
-                                  ..scale(0.8 + (value * 0.2)),
+                                  ..scale(0.9 + (value * 0.1)),
                             child: Opacity(
                               opacity: value,
                               child: Container(
