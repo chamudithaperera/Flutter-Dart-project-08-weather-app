@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'theme/app_colors.dart';
+import 'home_page.dart';
 
 class GetStartedPage extends StatefulWidget {
   const GetStartedPage({super.key});
@@ -78,7 +79,10 @@ class _GetStartedPageState extends State<GetStartedPage>
             right: 20,
             child: TextButton(
               onPressed: () {
-                // TODO: Navigate to main app
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomePage()),
+                );
               },
               child: Text(
                 'Skip',
@@ -219,7 +223,12 @@ class _GetStartedPageState extends State<GetStartedPage>
                       GestureDetector(
                         onTap: () {
                           if (_currentPage == _contents.length - 1) {
-                            // TODO: Navigate to main app
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const HomePage(),
+                              ),
+                            );
                           } else {
                             _pageController.nextPage(
                               duration: const Duration(milliseconds: 500),
