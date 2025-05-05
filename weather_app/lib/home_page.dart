@@ -5,6 +5,7 @@ import 'package:weather/weather.dart';
 import 'consts.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,6 +18,7 @@ class _HomePageState extends State<HomePage> {
   String _locationName = 'Getting location...';
   bool _isLoading = true;
   Weather? _weather;
+  List<Weather> _hourlyForecast = [];
   final WeatherFactory _wf = WeatherFactory(OPEN_WEATHER_API_KEY);
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
@@ -138,6 +140,17 @@ class _HomePageState extends State<HomePage> {
     _fetchLocationSuggestions(_searchController.text);
   }
 
+  Future<void> _fetchHourlyForecast(double lat, double lon) async {
+    try {
+      List<Weather> forecast = await _wf.fiveDayForecastByLocation(lat, lon);
+      setState(() {
+        _hourlyForecast = forecast;
+      });
+    } catch (e) {
+      print('Error fetching hourly forecast: $e');
+    }
+  }
+
   Future<void> _getCurrentLocation() async {
     try {
       var status = await Permission.location.request();
@@ -193,6 +206,9 @@ class _HomePageState extends State<HomePage> {
         position.longitude,
       );
 
+      // Get hourly forecast
+      await _fetchHourlyForecast(position.latitude, position.longitude);
+
       setState(() {
         _weather = weather;
         _locationName = weather.areaName ?? 'Unknown Location';
@@ -218,6 +234,10 @@ class _HomePageState extends State<HomePage> {
         location['lat'],
         location['lon'],
       );
+
+      // Get hourly forecast for searched location
+      await _fetchHourlyForecast(location['lat'], location['lon']);
+
       setState(() {
         _weather = weather;
         _locationName = '${location['name']}, ${location['country']}';
@@ -407,6 +427,9 @@ class _HomePageState extends State<HomePage> {
 
                         const SizedBox(height: 40),
 
+                        // Hourly Forecast
+                        if (_hourlyForecast.isNotEmpty) _buildHourlyForecast(),
+
                         // Additional Weather Info
                         if (_weather != null)
                           Container(
@@ -489,5 +512,53 @@ class _HomePageState extends State<HomePage> {
       default:
         return Icons.wb_sunny;
     }
+  }
+
+  Widget _buildHourlyForecast() {
+    return Container(
+      height: 120,
+      margin: const EdgeInsets.symmetric(vertical: 20),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _hourlyForecast.length,
+        itemBuilder: (context, index) {
+          final weather = _hourlyForecast[index];
+          final time = DateFormat('HH:mm').format(weather.date!);
+
+          return Container(
+            width: 100,
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  time,
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Icon(
+                  _getWeatherIcon(weather.weatherMain),
+                  color: Colors.white,
+                  size: 30,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${weather.temperature?.celsius?.round()}°',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 }
