@@ -575,8 +575,104 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                       ),
-                      // Placeholders for Weekly, Sun, AQI cards
-                      // ...
+                      // More Weather Details Card
+                      if (_weather != null)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          margin: const EdgeInsets.only(bottom: 24),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(28),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.04),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'More Details',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _buildTodayInfo(
+                                    'Wind',
+                                    _weather!.windSpeed != null
+                                        ? '${_weather!.windSpeed} m/s'
+                                        : '--',
+                                  ),
+                                  _buildTodayInfo(
+                                    'Wind Dir',
+                                    _weather!.windDegree != null
+                                        ? '${_weather!.windDegree}°'
+                                        : '--',
+                                  ),
+                                  _buildTodayInfo(
+                                    'Feels Like',
+                                    _weather!.tempFeelsLike?.celsius != null
+                                        ? '${_weather!.tempFeelsLike!.celsius!.round()}°'
+                                        : '--',
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _buildTodayInfo(
+                                    'Min Temp',
+                                    _weather!.tempMin?.celsius != null
+                                        ? '${_weather!.tempMin!.celsius!.round()}°'
+                                        : '--',
+                                  ),
+                                  _buildTodayInfo(
+                                    'Max Temp',
+                                    _weather!.tempMax?.celsius != null
+                                        ? '${_weather!.tempMax!.celsius!.round()}°'
+                                        : '--',
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _buildTodayInfo(
+                                    'Sunrise',
+                                    _weather!.sunrise != null
+                                        ? DateFormat(
+                                          'h:mm a',
+                                        ).format(_weather!.sunrise!.toLocal())
+                                        : '--',
+                                  ),
+                                  _buildTodayInfo(
+                                    'Sunset',
+                                    _weather!.sunset != null
+                                        ? DateFormat(
+                                          'h:mm a',
+                                        ).format(_weather!.sunset!.toLocal())
+                                        : '--',
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),
