@@ -3,9 +3,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:weather/weather.dart';
 import 'consts.dart';
+import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -24,60 +24,6 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> _searchSuggestions = [];
   bool _isSearchingSuggestions = false;
-
-  // List of major cities
-  final List<String> _cities = [
-    'New York, US',
-    'London, UK',
-    'Tokyo, Japan',
-    'Paris, France',
-    'Sydney, Australia',
-    'Berlin, Germany',
-    'Moscow, Russia',
-    'Dubai, UAE',
-    'Singapore',
-    'Hong Kong',
-    'Amsterdam, Netherlands',
-    'Rome, Italy',
-    'Bangkok, Thailand',
-    'Istanbul, Turkey',
-    'Seoul, South Korea',
-    'Barcelona, Spain',
-    'Vienna, Austria',
-    'Athens, Greece',
-    'Cairo, Egypt',
-    'Mumbai, India',
-    'Beijing, China',
-    'Toronto, Canada',
-    'Mexico City, Mexico',
-    'São Paulo, Brazil',
-    'Buenos Aires, Argentina',
-    'Cape Town, South Africa',
-    'Auckland, New Zealand',
-    'Oslo, Norway',
-    'Stockholm, Sweden',
-    'Helsinki, Finland',
-    'Warsaw, Poland',
-    'Prague, Czech Republic',
-    'Budapest, Hungary',
-    'Lisbon, Portugal',
-    'Dublin, Ireland',
-    'Brussels, Belgium',
-    'Copenhagen, Denmark',
-    'Zurich, Switzerland',
-    'Vienna, Austria',
-    'Madrid, Spain',
-    'Milan, Italy',
-    'Munich, Germany',
-    'Frankfurt, Germany',
-    'Hamburg, Germany',
-    'Manchester, UK',
-    'Birmingham, UK',
-    'Glasgow, UK',
-    'Edinburgh, UK',
-    'Liverpool, UK',
-    'Bristol, UK',
-  ];
 
   @override
   void initState() {
