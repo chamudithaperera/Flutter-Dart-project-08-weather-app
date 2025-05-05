@@ -440,9 +440,6 @@ class _HomePageState extends State<HomePage> {
 
                         const SizedBox(height: 40),
 
-                        // Hourly Forecast
-                        if (_hourlyForecast.isNotEmpty) _buildHourlyForecast(),
-
                         // Additional Weather Info
                         if (_weather != null)
                           Container(
@@ -473,6 +470,28 @@ class _HomePageState extends State<HomePage> {
                               ],
                             ),
                           ),
+
+                        const SizedBox(height: 20),
+
+                        // Hourly Forecast Section
+                        if (_hourlyForecast.isNotEmpty) ...[
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Hourly Forecast',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          _buildHourlyForecast(),
+                        ],
                       ],
                     ),
                   ),
@@ -530,7 +549,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildHourlyForecast() {
     return Container(
       height: 120,
-      margin: const EdgeInsets.symmetric(vertical: 20),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: _hourlyForecast.length,
@@ -540,7 +559,7 @@ class _HomePageState extends State<HomePage> {
 
           return Container(
             width: 100,
-            margin: const EdgeInsets.symmetric(horizontal: 8),
+            margin: const EdgeInsets.only(right: 8),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(15),
