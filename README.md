@@ -7,20 +7,18 @@ A beautiful Flutter application that provides real-time weather updates, hourly 
 - Real-time weather for any location
 - Hourly and daily forecasts
 - Search for cities with live suggestions
-- Modern, ocean blue themed UI
+- Modern, ocean blue-themed UI
 - Location permission handling (Android & iOS)
 - Responsive design for all devices
-- Dark/Light theme support (if implemented)
-- Offline support (if implemented)
 
 ## APIs & Technologies Used
 
 - **Flutter**: Cross-platform UI toolkit for building natively compiled applications for mobile (Android & iOS) from a single codebase.
-- **Dart**: Programming language for Flutter development.
+- **Dart**: A programming language for Flutter development.
 - **OpenWeatherMap API**: Provides real-time weather data, hourly and daily forecasts, and geocoding for city search.
 - **Geolocator**: For accessing device location (Android & iOS).
 - **permission_handler**: For handling runtime permissions (location, etc.).
-- **http**: For making network requests to weather and geocoding APIs.
+- **HTTP**: This is for making network requests to weather and geocoding APIs.
 - **intl**: For date and time formatting.
 
 ## Installation
