@@ -237,54 +237,28 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title:
             _isSearching
-                ? Column(
-                  children: [
-                    TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Search location...',
-                        border: InputBorder.none,
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            setState(() {
-                              _searchController.clear();
-                              _isSearching = false;
-                              _searchSuggestions = [];
-                            });
-                          },
-                        ),
-                      ),
-                      onSubmitted: (value) {
-                        if (_searchSuggestions.isNotEmpty) {
-                          _searchLocation(_searchSuggestions[0]);
-                        }
+                ? TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search location...',
+                    border: InputBorder.none,
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        setState(() {
+                          _searchController.clear();
+                          _isSearching = false;
+                          _searchSuggestions = [];
+                        });
                       },
-                      autofocus: true,
                     ),
-                    if (_isSearchingSuggestions &&
-                        _searchSuggestions.isNotEmpty)
-                      Container(
-                        color: Colors.white,
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: _searchSuggestions.length,
-                          itemBuilder: (context, index) {
-                            final location = _searchSuggestions[index];
-                            final state =
-                                location['state'] != null
-                                    ? ', ${location['state']}'
-                                    : '';
-                            return ListTile(
-                              title: Text(
-                                '${location['name']}$state, ${location['country']}',
-                              ),
-                              onTap: () => _searchLocation(location),
-                            );
-                          },
-                        ),
-                      ),
-                  ],
+                  ),
+                  onSubmitted: (value) {
+                    if (_searchSuggestions.isNotEmpty) {
+                      _searchLocation(_searchSuggestions[0]);
+                    }
+                  },
+                  autofocus: true,
                 )
                 : const Text('Weather App'),
         actions: [
@@ -304,7 +278,55 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body:
-          _isLoading
+          _isSearching
+              ? Container(
+                color: Colors.white,
+                child: Column(
+                  children: [
+                    if (_isSearchingSuggestions &&
+                        _searchSuggestions.isNotEmpty)
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: _searchSuggestions.length,
+                          itemBuilder: (context, index) {
+                            final location = _searchSuggestions[index];
+                            final state =
+                                location['state'] != null
+                                    ? ', ${location['state']}'
+                                    : '';
+                            return ListTile(
+                              leading: const Icon(Icons.location_on),
+                              title: Text('${location['name']}$state'),
+                              subtitle: Text(location['country']),
+                              onTap: () => _searchLocation(location),
+                            );
+                          },
+                        ),
+                      )
+                    else if (_searchController.text.isNotEmpty)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text(
+                            'No locations found',
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          ),
+                        ),
+                      )
+                    else
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text(
+                            'Start typing to search locations',
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              )
+              : _isLoading
               ? const Center(child: CircularProgressIndicator())
               : RefreshIndicator(
                 onRefresh: _getCurrentLocation,
