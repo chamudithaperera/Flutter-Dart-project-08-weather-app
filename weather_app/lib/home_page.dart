@@ -264,19 +264,48 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Color _getWeatherColor(String? weatherMain) {
+    switch (weatherMain?.toLowerCase()) {
+      case 'clear':
+        return const Color(0xFF47BFDF);
+      case 'clouds':
+        return const Color(0xFF54717A);
+      case 'rain':
+        return const Color(0xFF57575D);
+      case 'snow':
+        return const Color(0xFF7BE495);
+      case 'thunderstorm':
+        return const Color(0xFF4A536B);
+      case 'drizzle':
+        return const Color(0xFF57575D);
+      case 'mist':
+      case 'smoke':
+      case 'haze':
+      case 'dust':
+      case 'fog':
+        return const Color(0xFF54717A);
+      default:
+        return const Color(0xFF47BFDF);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
         title:
             _isSearching
                 ? TextField(
                   controller: _searchController,
+                  style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: 'Search location...',
+                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
                     border: InputBorder.none,
                     suffixIcon: IconButton(
-                      icon: const Icon(Icons.clear),
+                      icon: const Icon(Icons.clear, color: Colors.white),
                       onPressed: () {
                         setState(() {
                           _searchController.clear();
@@ -293,13 +322,19 @@ class _HomePageState extends State<HomePage> {
                   },
                   autofocus: true,
                 )
-                : const Text('Weather App'),
+                : const Text(
+                  'Weather App',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
         actions: [
           if (!_isSearching)
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
               child: IconButton(
-                icon: const Icon(Icons.search, size: 30, color: Colors.black),
+                icon: const Icon(Icons.search, size: 30, color: Colors.white),
                 onPressed: () {
                   setState(() {
                     _isSearching = true;
@@ -313,7 +348,16 @@ class _HomePageState extends State<HomePage> {
       body:
           _isSearching
               ? Container(
-                color: Colors.white,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      _getWeatherColor(_weather?.weatherMain),
+                      _getWeatherColor(_weather?.weatherMain).withOpacity(0.8),
+                    ],
+                  ),
+                ),
                 child: Column(
                   children: [
                     if (_isSearchingSuggestions &&
@@ -328,9 +372,20 @@ class _HomePageState extends State<HomePage> {
                                     ? ', ${location['state']}'
                                     : '';
                             return ListTile(
-                              leading: const Icon(Icons.location_on),
-                              title: Text('${location['name']}$state'),
-                              subtitle: Text(location['country']),
+                              leading: const Icon(
+                                Icons.location_on,
+                                color: Colors.white,
+                              ),
+                              title: Text(
+                                '${location['name']}$state',
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              subtitle: Text(
+                                location['country'],
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.7),
+                                ),
+                              ),
                               onTap: () => _searchLocation(location),
                             );
                           },
@@ -342,7 +397,7 @@ class _HomePageState extends State<HomePage> {
                           padding: EdgeInsets.all(16.0),
                           child: Text(
                             'No locations found',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                            style: TextStyle(fontSize: 16, color: Colors.white),
                           ),
                         ),
                       )
@@ -352,7 +407,7 @@ class _HomePageState extends State<HomePage> {
                           padding: EdgeInsets.all(16.0),
                           child: Text(
                             'Start typing to search locations',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                            style: TextStyle(fontSize: 16, color: Colors.white),
                           ),
                         ),
                       ),
@@ -360,7 +415,9 @@ class _HomePageState extends State<HomePage> {
                 ),
               )
               : _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              )
               : RefreshIndicator(
                 onRefresh: _getCurrentLocation,
                 child: SingleChildScrollView(
@@ -373,7 +430,12 @@ class _HomePageState extends State<HomePage> {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Colors.blue.shade300, Colors.blue.shade500],
+                        colors: [
+                          _getWeatherColor(_weather?.weatherMain),
+                          _getWeatherColor(
+                            _weather?.weatherMain,
+                          ).withOpacity(0.8),
+                        ],
                       ),
                     ),
                     child: Column(
@@ -410,10 +472,17 @@ class _HomePageState extends State<HomePage> {
 
                         // Weather Icon
                         if (_weather != null)
-                          Icon(
-                            _getWeatherIcon(_weather!.weatherMain),
-                            size: 100,
-                            color: Colors.white,
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              _getWeatherIcon(_weather!.weatherMain),
+                              size: 100,
+                              color: Colors.white,
+                            ),
                           ),
                         const SizedBox(height: 20),
 
@@ -448,6 +517,13 @@ class _HomePageState extends State<HomePage> {
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -515,7 +591,7 @@ class _HomePageState extends State<HomePage> {
         ),
         Text(
           label,
-          style: const TextStyle(color: Colors.white70, fontSize: 14),
+          style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
         ),
       ],
     );
@@ -563,6 +639,13 @@ class _HomePageState extends State<HomePage> {
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
