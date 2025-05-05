@@ -3,6 +3,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:weather/weather.dart';
 import 'consts.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,17 +20,122 @@ class _HomePageState extends State<HomePage> {
   final WeatherFactory _wf = WeatherFactory(OPEN_WEATHER_API_KEY);
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
+  List<Map<String, dynamic>> _searchSuggestions = [];
+  bool _isSearchingSuggestions = false;
+
+  // List of major cities
+  final List<String> _cities = [
+    'New York, US',
+    'London, UK',
+    'Tokyo, Japan',
+    'Paris, France',
+    'Sydney, Australia',
+    'Berlin, Germany',
+    'Moscow, Russia',
+    'Dubai, UAE',
+    'Singapore',
+    'Hong Kong',
+    'Amsterdam, Netherlands',
+    'Rome, Italy',
+    'Bangkok, Thailand',
+    'Istanbul, Turkey',
+    'Seoul, South Korea',
+    'Barcelona, Spain',
+    'Vienna, Austria',
+    'Athens, Greece',
+    'Cairo, Egypt',
+    'Mumbai, India',
+    'Beijing, China',
+    'Toronto, Canada',
+    'Mexico City, Mexico',
+    'São Paulo, Brazil',
+    'Buenos Aires, Argentina',
+    'Cape Town, South Africa',
+    'Auckland, New Zealand',
+    'Oslo, Norway',
+    'Stockholm, Sweden',
+    'Helsinki, Finland',
+    'Warsaw, Poland',
+    'Prague, Czech Republic',
+    'Budapest, Hungary',
+    'Lisbon, Portugal',
+    'Dublin, Ireland',
+    'Brussels, Belgium',
+    'Copenhagen, Denmark',
+    'Zurich, Switzerland',
+    'Vienna, Austria',
+    'Madrid, Spain',
+    'Milan, Italy',
+    'Munich, Germany',
+    'Frankfurt, Germany',
+    'Hamburg, Germany',
+    'Manchester, UK',
+    'Birmingham, UK',
+    'Glasgow, UK',
+    'Edinburgh, UK',
+    'Liverpool, UK',
+    'Bristol, UK',
+  ];
 
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchLocationSuggestions(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _searchSuggestions = [];
+        _isSearchingSuggestions = false;
+      });
+      return;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'http://api.openweathermap.org/geo/1.0/direct?q=$query&limit=5&appid=$OPEN_WEATHER_API_KEY',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _searchSuggestions =
+              data
+                  .map(
+                    (item) => {
+                      'name': item['name'],
+                      'country': item['country'],
+                      'state': item['state'],
+                      'lat': item['lat'],
+                      'lon': item['lon'],
+                    },
+                  )
+                  .toList();
+          _isSearchingSuggestions = true;
+        });
+      }
+    } catch (e) {
+      print('Error fetching suggestions: $e');
+      setState(() {
+        _searchSuggestions = [];
+        _isSearchingSuggestions = false;
+      });
+    }
+  }
+
+  void _onSearchChanged() {
+    _fetchLocationSuggestions(_searchController.text);
   }
 
   Future<void> _getCurrentLocation() async {
@@ -99,26 +206,27 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _searchLocation(String location) async {
-    if (location.isEmpty) return;
-
+  Future<void> _searchLocation(Map<String, dynamic> location) async {
     setState(() {
       _isLoading = true;
+      _isSearching = false;
+      _searchSuggestions = [];
     });
 
     try {
-      Weather weather = await _wf.currentWeatherByCityName(location);
+      Weather weather = await _wf.currentWeatherByLocation(
+        location['lat'],
+        location['lon'],
+      );
       setState(() {
         _weather = weather;
-        _locationName = weather.areaName ?? location;
+        _locationName = '${location['name']}, ${location['country']}';
         _isLoading = false;
-        _isSearching = false;
       });
     } catch (e) {
       setState(() {
         _locationName = 'Location not found';
         _isLoading = false;
-        _isSearching = false;
       });
     }
   }
@@ -129,23 +237,54 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title:
             _isSearching
-                ? TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search location...',
-                    border: InputBorder.none,
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        setState(() {
-                          _searchController.clear();
-                          _isSearching = false;
-                        });
+                ? Column(
+                  children: [
+                    TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search location...',
+                        border: InputBorder.none,
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            setState(() {
+                              _searchController.clear();
+                              _isSearching = false;
+                              _searchSuggestions = [];
+                            });
+                          },
+                        ),
+                      ),
+                      onSubmitted: (value) {
+                        if (_searchSuggestions.isNotEmpty) {
+                          _searchLocation(_searchSuggestions[0]);
+                        }
                       },
+                      autofocus: true,
                     ),
-                  ),
-                  onSubmitted: _searchLocation,
-                  autofocus: true,
+                    if (_isSearchingSuggestions &&
+                        _searchSuggestions.isNotEmpty)
+                      Container(
+                        color: Colors.white,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _searchSuggestions.length,
+                          itemBuilder: (context, index) {
+                            final location = _searchSuggestions[index];
+                            final state =
+                                location['state'] != null
+                                    ? ', ${location['state']}'
+                                    : '';
+                            return ListTile(
+                              title: Text(
+                                '${location['name']}$state, ${location['country']}',
+                              ),
+                              onTap: () => _searchLocation(location),
+                            );
+                          },
+                        ),
+                      ),
+                  ],
                 )
                 : const Text('Weather App'),
         actions: [
