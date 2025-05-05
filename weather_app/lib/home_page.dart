@@ -143,8 +143,21 @@ class _HomePageState extends State<HomePage> {
   Future<void> _fetchHourlyForecast(double lat, double lon) async {
     try {
       List<Weather> forecast = await _wf.fiveDayForecastByLocation(lat, lon);
+
+      // Sort and filter the forecast for next 24 hours
+      final now = DateTime.now();
+      final next24Hours = now.add(const Duration(hours: 24));
+
       setState(() {
-        _hourlyForecast = forecast;
+        _hourlyForecast =
+            forecast
+                .where(
+                  (weather) =>
+                      weather.date!.isAfter(now) &&
+                      weather.date!.isBefore(next24Hours),
+                )
+                .toList()
+              ..sort((a, b) => a.date!.compareTo(b.date!));
       });
     } catch (e) {
       print('Error fetching hourly forecast: $e');
@@ -523,7 +536,7 @@ class _HomePageState extends State<HomePage> {
         itemCount: _hourlyForecast.length,
         itemBuilder: (context, index) {
           final weather = _hourlyForecast[index];
-          final time = DateFormat('HH:mm').format(weather.date!);
+          final time = DateFormat('HH:00').format(weather.date!);
 
           return Container(
             width: 100,
