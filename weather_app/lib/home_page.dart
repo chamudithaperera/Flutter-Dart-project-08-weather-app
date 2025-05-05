@@ -16,11 +16,19 @@ class _HomePageState extends State<HomePage> {
   bool _isLoading = true;
   Weather? _weather;
   final WeatherFactory _wf = WeatherFactory(OPEN_WEATHER_API_KEY);
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _getCurrentLocation() async {
@@ -91,23 +99,69 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _searchLocation(String location) async {
+    if (location.isEmpty) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      Weather weather = await _wf.currentWeatherByCityName(location);
+      setState(() {
+        _weather = weather;
+        _locationName = weather.areaName ?? location;
+        _isLoading = false;
+        _isSearching = false;
+      });
+    } catch (e) {
+      setState(() {
+        _locationName = 'Location not found';
+        _isLoading = false;
+        _isSearching = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Weather App'),
+        title:
+            _isSearching
+                ? TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search location...',
+                    border: InputBorder.none,
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        setState(() {
+                          _searchController.clear();
+                          _isSearching = false;
+                        });
+                      },
+                    ),
+                  ),
+                  onSubmitted: _searchLocation,
+                  autofocus: true,
+                )
+                : const Text('Weather App'),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: IconButton(
-              icon: const Icon(Icons.search, size: 30, color: Colors.black),
-              onPressed: () {
-                // TODO: Implement search functionality
-                print('Search icon pressed');
-              },
-              tooltip: 'Search',
+          if (!_isSearching)
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: IconButton(
+                icon: const Icon(Icons.search, size: 30, color: Colors.black),
+                onPressed: () {
+                  setState(() {
+                    _isSearching = true;
+                  });
+                },
+                tooltip: 'Search',
+              ),
             ),
-          ),
         ],
       ),
       body:
@@ -132,7 +186,8 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // Location
-                        Padding(
+                        Container(
+                          width: double.infinity,
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -142,12 +197,16 @@ class _HomePageState extends State<HomePage> {
                                 color: Colors.white,
                               ),
                               const SizedBox(width: 8),
-                              Text(
-                                _locationName,
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                              Flexible(
+                                child: Text(
+                                  _locationName,
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
